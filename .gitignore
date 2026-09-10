@@ -1,7 +1,9 @@
 # OSX
 #
 .DS_Store
-
+package-lock.json
+*.lock
+ios/Podfile.lock
 # Xcode
 #
 build/
@@ -38,6 +40,8 @@ local.properties
 # node.js
 #
 node_modules/
+e2e/
+ios/Podfile.lock
 npm-debug.log
 yarn-error.log
 
