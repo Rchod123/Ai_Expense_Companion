@@ -1,28 +1,30 @@
-import { StyleSheet, ViewStyle } from 'react-native';
+import { StyleProp, StyleSheet, ViewStyle } from 'react-native';
+import { COLORS, RADIUS } from '../utils/colors';
 import MyPressable from './MyPressable';
 import { TextComponent } from './TextComponent';
-import { widthPercentageToDP } from '../utils/responsive';
 
 type Props = {
-  
   testID: string;
-  onPress: Function;
+  onPress: () => void;
   value: string;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 };
 
-export const PrimaryButton: React.FC<Props> = ({ style, testID, onPress,value }) => {
+export const PrimaryButton: React.FC<Props> = ({
+  style,
+  testID,
+  onPress,
+  value,
+}) => {
   return (
     <MyPressable
-      style={style ? style: styles.button}
+      style={[styles.button, style]}
       testID={testID}
       android_ripple={{ color: 'powderblue' }}
       touchOpacity={0.6}
-      onPress={() => onPress()}
+      onPress={onPress}
     >
-      <TextComponent style={styles.buttonText}>
-        {value}
-      </TextComponent>
+      <TextComponent style={styles.buttonText}>{value}</TextComponent>
     </MyPressable>
   );
 };
@@ -30,14 +32,14 @@ export const PrimaryButton: React.FC<Props> = ({ style, testID, onPress,value })
 const styles = StyleSheet.create({
   button: {
     height: 58,
-    backgroundColor: 'rgb(21, 32, 54)',
+    backgroundColor: COLORS.brandStrong,
     paddingVertical: 16,
     paddingHorizontal: 56,
-    borderRadius: widthPercentageToDP(5),
+    alignItems: 'center',
+    borderRadius: RADIUS.lg,
   },
   buttonText: {
     fontSize: 18,
-    fontFamily: 'WorkSans-Regular',
-    color: 'white',
+    color: COLORS.surface,
   },
 });

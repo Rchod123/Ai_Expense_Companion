@@ -1,10 +1,7 @@
 import { ButtonsIDs } from '../types/testIds';
 import { Values } from '../types/constants';
 import CustomInput from '../components/TextInputComponet';
-import {
-  Image,
-  ScrollView,
-} from 'react-native';
+import { Image, ScrollView, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { AppImages } from '../assets';
 import { heightPercentageToDP, widthPercentageToDP } from '../utils/responsive';
@@ -18,17 +15,13 @@ export const LoginScreen = () => {
   const navigation = useNavigation<any>();
 
   return (
-    <ScrollView style={{ backgroundColor: COLORS.backgroundColor, flex: 1 }}>
-      <SafeAreaView
-        style={{ flex: 1, alignItems: 'center' }}
-      >
-        <Image
-          source={AppImages.moscot_image}
-          style={{
-            width: widthPercentageToDP(100),
-            height: heightPercentageToDP(35),
-          }}
-        />
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={styles.content}
+      keyboardShouldPersistTaps="handled"
+    >
+      <SafeAreaView style={styles.safeArea}>
+        <Image source={AppImages.moscot_image} style={styles.image} />
         <TextComponent
           testID="Login_Title"
           accessibilityLabel="Login_Title"
@@ -36,10 +29,22 @@ export const LoginScreen = () => {
           size="MidSection"
           variant="bold"
         />
-        <CustomInput name="Email" testID="Login_Email_Input" keyboardType="email-address" />
-        <CustomInput name="Password" testID="Login_Password_Input" secureTextEntry />
+        <CustomInput
+          name="Email"
+          testID="Login_Email_Input"
+          keyboardType="email-address"
+        />
+        <CustomInput
+          name="Password"
+          testID="Login_Password_Input"
+          secureTextEntry
+        />
 
-        <LinkText testID="Login_ForgotPassword_Link" onPress={() => {}} value="Forgot password?" />
+        <LinkText
+          testID="Login_ForgotPassword_Link"
+          onPress={() => {}}
+          value="Forgot password?"
+        />
 
         <PrimaryButton
           testID={ButtonsIDs(Values.Screens.LoginScreen)}
@@ -56,3 +61,14 @@ export const LoginScreen = () => {
     </ScrollView>
   );
 };
+
+const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: COLORS.backgroundColor },
+  content: { flexGrow: 1 },
+  safeArea: { flex: 1, alignItems: 'center' },
+  image: {
+    width: widthPercentageToDP(100),
+    height: heightPercentageToDP(35),
+    resizeMode: 'contain',
+  },
+});

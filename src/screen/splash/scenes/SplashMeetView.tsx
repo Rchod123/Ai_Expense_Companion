@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppImages } from '../../../assets';
-import MyPressable from '../../../components/MyPressable';
 import { Values } from '../../../types/constants';
 import { heightPercentageToDP } from '../../../utils/responsive';
 import {
@@ -43,23 +42,19 @@ const SplashMeetView: React.FC<Props> = ({
     <Animated.View
       testID={mainContainer(Values.Screens.SplashMeetView)}
       accessibilityLabel={mainContainer(Values.Screens.SplashMeetView)}
-      style={{ flex: 1, transform: [{ translateY: splashTranslateY }] }}
+      style={[styles.screen, { transform: [{ translateY: splashTranslateY }] }]}
     >
       <ScrollView
         testID={ScrollConatiner(Values.Screens.SplashMeetView)}
         accessibilityLabel={ScrollConatiner(Values.Screens.SplashMeetView)}
-        style={{ flexGrow: 0, paddingTop: heightPercentageToDP(10) }}
+        style={styles.scrollView}
         alwaysBounceVertical={false}
       >
         <View>
           <Image
             testID={ImageIDs(Values.Screens.SplashMeetView)}
             accessibilityLabel={ImageIDs(Values.Screens.SplashMeetView)}
-            style={{
-              width: window.width,
-              height: undefined,
-              aspectRatio: 1,
-            }}
+            style={[styles.image, { width: window.width }]}
             source={AppImages.meet_image}
           />
         </View>
@@ -83,19 +78,11 @@ const SplashMeetView: React.FC<Props> = ({
 
       <View style={[styles.footer, { paddingBottom: 8 + insets.bottom }]}>
         <View style={styles.buttonContainer}>
-          {/* <MyPressable
-            style={styles.button}
+          <PrimaryButton
             testID={ButtonsIDs(Values.Screens.SplashMeetView)}
-            android_ripple={{ color: 'powderblue' }}
-            touchOpacity={0.6}
-            onPress={() => onNextClick()}
-          >
-            <TextComponent style={styles.buttonText}>
-              {Values.Genral.begin}
-            </TextComponent>
-          </MyPressable> */}
-           <PrimaryButton style={undefined} testID={ButtonsIDs(Values.Screens.SplashMeetView)} onPress={onNextClick} value= {Values.Genral.begin}      
-          /> 
+            onPress={onNextClick}
+            value={Values.Genral.begin}
+          />
         </View>
       </View>
     </Animated.View>
@@ -103,6 +90,9 @@ const SplashMeetView: React.FC<Props> = ({
 };
 
 const styles = StyleSheet.create({
+  screen: { flex: 1 },
+  scrollView: { flexGrow: 0, paddingTop: heightPercentageToDP(10) },
+  image: { height: undefined, aspectRatio: 1 },
   title: {
     color: 'black',
     fontSize: 25,

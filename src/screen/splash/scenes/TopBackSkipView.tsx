@@ -37,7 +37,10 @@ const TopBackSkipView: React.FC<Props> = ({
         { marginTop, transform: [{ translateY: headerTranslateY }] },
       ]}
     >
-      <BackButton testID={GenralContainer(Values.Genral.back_button)} onPress={onBackClick} />
+      <BackButton
+        testID={GenralContainer(Values.Genral.back_button)}
+        onPress={onBackClick}
+      />
 
       <Animated.View style={{ transform: [{ translateX: skipAnim }] }}>
         <MyPressable
@@ -45,9 +48,7 @@ const TopBackSkipView: React.FC<Props> = ({
           android_ripple={{ color: 'darkgrey', borderless: true, radius: 28 }}
           onPress={() => onSkipClick()}
         >
-          <Text style={{ color: 'black', fontFamily: 'WorkSans-Regular' }}>
-            Skip
-          </Text>
+          <Text style={styles.skipText}>Skip</Text>
         </MyPressable>
       </Animated.View>
     </Animated.View>
@@ -55,6 +56,7 @@ const TopBackSkipView: React.FC<Props> = ({
 };
 
 const styles = StyleSheet.create({
+  skipText: { color: 'black', fontFamily: 'WorkSans-Regular' },
   buttonContainer: {
     height: 58,
     flexDirection: 'row',

@@ -4,7 +4,6 @@ import Icon from '@react-native-vector-icons/material-icons';
 import MyPressable from '../../../../components/MyPressable';
 import { Values } from '../../../../types/constants';
 
-
 interface Props {
   onBtnPress: () => void;
   animationController: React.MutableRefObject<Animated.Value>;
@@ -75,7 +74,7 @@ const NextButtonArrow: React.FC<Props> = ({
     >
       <MyPressable
         testID="Splash_Next_Button"
-        style={{ flex: 1, justifyContent: 'center' }}
+        style={styles.pressable}
         android_ripple={{ color: 'darkgrey' }}
         onPress={() => onBtnPress()}
       >
@@ -110,6 +109,7 @@ const NextButtonArrow: React.FC<Props> = ({
 };
 
 const styles = StyleSheet.create({
+  pressable: { flex: 1, justifyContent: 'center' },
   container: {
     height: 58,
     backgroundColor: 'rgb(21, 32, 54)',

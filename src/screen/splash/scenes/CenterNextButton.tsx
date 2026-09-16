@@ -2,9 +2,11 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, Text, Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import NextButtonArrow from './components/NextButtonArrow';
+import MyPressable from '../../../components/MyPressable';
 
 interface Props {
   onNextClick: () => void;
+  onLoginClick: () => void;
   animationController: React.RefObject<Animated.Value>;
 }
 
@@ -40,6 +42,7 @@ const DotIndicator: React.FC<DotIndicatorProps> = ({
 
 const CenterNextButton: React.FC<Props> = ({
   onNextClick,
+  onLoginClick,
   animationController,
 }) => {
   const opacity = useRef<Animated.Value>(new Animated.Value(0));
@@ -116,16 +119,17 @@ const CenterNextButton: React.FC<Props> = ({
           { transform: [{ translateY: loginTextMoveAnimation }] },
         ]}
       >
-        <Text style={{ color: 'grey', fontFamily: 'WorkSans-Regular' }}>
-          Already have an account?{' '}
-        </Text>
-        <Text style={styles.loginText}>Login</Text>
+        <Text style={styles.footerText}>Already have an account? </Text>
+        <MyPressable onPress={onLoginClick} testID="login_button">
+          <Text style={styles.loginText}>Login</Text>
+        </MyPressable>
       </Animated.View>
     </Animated.View>
   );
 };
 
 const styles = StyleSheet.create({
+  footerText: { color: 'grey', fontFamily: 'WorkSans-Regular' },
   container: {
     alignItems: 'center',
     position: 'absolute',

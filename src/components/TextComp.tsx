@@ -3,6 +3,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  StyleSheet,
   type TextProps as RNTextProps,
 } from 'react-native';
 import { COLORS } from '../utils/colors';
@@ -56,7 +57,6 @@ export const TextComponent: React.FC<Props> = ({
   style,
   ...props
 }) => {
-
   const colorMap: Partial<Record<string, string>> = {
     [COLORS.brand]: COLORS.brand,
     [COLORS.brandStrong]: COLORS.brandStrong,
@@ -73,10 +73,10 @@ export const TextComponent: React.FC<Props> = ({
   const [showButton, setShowButton] = useState(false);
 
   return (
-    <View style={{ flexDirection: 'row' }}>
+    <View style={styles.row}>
       <Text
         {...props}
-        numberOfLines={showButton ? undefined: 1}
+        numberOfLines={showButton ? undefined : 1}
         style={[
           {
             color: resolvedColor,
@@ -89,10 +89,17 @@ export const TextComponent: React.FC<Props> = ({
         {value}
       </Text>
       {showMore && value?.length > 30 && (
-        <TouchableOpacity   onPress={() => setShowButton((prev) => !prev)}>
-          <Text style={{ alignSelf: 'flex-end', color: resolvedColor }}>{showButton ? 'Show Less': 'Show More'}</Text>
+        <TouchableOpacity onPress={() => setShowButton(prev => !prev)}>
+          <Text style={[styles.showMore, { color: resolvedColor }]}>
+            {showButton ? 'Show Less' : 'Show More'}
+          </Text>
         </TouchableOpacity>
       )}
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  row: { flexDirection: 'row' },
+  showMore: { alignSelf: 'flex-end' },
+});

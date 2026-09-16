@@ -20,8 +20,7 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     minHeight: heightPercentageToDP(6.5),
-    width: widthPercentageToDP(84),
-    maxWidth: 380,
+    width: '100%',
     backgroundColor: COLORS.surface,
     marginVertical: heightPercentageToDP(0.8),
     borderRadius: RADIUS.lg,
@@ -55,6 +54,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginLeft: 8,
   },
+  keyboardContainer: {
+    width: '100%',
+    paddingHorizontal: widthPercentageToDP(4),
+  },
+  dottedInput: { borderStyle: 'dotted' },
+  dashedInput: { borderStyle: 'dashed' },
 });
 
 export const BasicSkeleton: React.FC<{
@@ -62,7 +67,6 @@ export const BasicSkeleton: React.FC<{
   name: string;
   type?: 'dotted' | 'dashed';
 }> = ({ children, name, type = 'dotted' }) => {
-
   return (
     <>
       <View style={styles.labelContainer}>
@@ -71,7 +75,7 @@ export const BasicSkeleton: React.FC<{
       <View
         style={[
           styles.inputContainer,
-          { backgroundColor: COLORS.surface, borderColor: COLORS.border, borderStyle: type },
+          type === 'dashed' ? styles.dashedInput : styles.dottedInput,
         ]}
       >
         {children}
@@ -84,12 +88,14 @@ type InputProps = {
   name: string;
   rightType?: 'icon' | 'text';
   buttonTestID?: string;
-  testID?:string;
+  testID?: string;
   rightValue?: string;
   onRightPress?: () => void;
 };
 
-export const CustomInput: React.FC<InputProps & React.ComponentProps<typeof TextInput>> = ({
+export const CustomInput: React.FC<
+  InputProps & React.ComponentProps<typeof TextInput>
+> = ({
   name,
   rightType = 'text',
   buttonTestID,
@@ -101,7 +107,7 @@ export const CustomInput: React.FC<InputProps & React.ComponentProps<typeof Text
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={{ paddingHorizontal: widthPercentageToDP(4) }}
+      style={styles.keyboardContainer}
     >
       <BasicSkeleton name={name}>
         <View style={styles.row}>
@@ -110,10 +116,14 @@ export const CustomInput: React.FC<InputProps & React.ComponentProps<typeof Text
             returnKeyType="done"
             testID={testID}
             placeholderTextColor={COLORS.textMuted}
-            style={[styles.textInput, { color: COLORS.textPrimary }]}
+            style={styles.textInput}
           />
           {rightValue && (
-            <MyPressable testID={buttonTestID} onPress={onRightPress} style={styles.right}>
+            <MyPressable
+              testID={buttonTestID}
+              onPress={onRightPress}
+              style={styles.right}
+            >
               {rightType === 'icon' ? (
                 <FontAwesome6
                   name={rightValue as any}
@@ -130,7 +140,5 @@ export const CustomInput: React.FC<InputProps & React.ComponentProps<typeof Text
     </KeyboardAvoidingView>
   );
 };
-
-
 
 export default CustomInput;

@@ -1,0 +1,35 @@
+export const STRINGS = {
+  dashboard: {
+    title: 'Expense companion',
+    recentTransactions: 'Recent transactions',
+    emptyTitle: 'No transactions yet',
+    emptyMessage: 'Use the + button to add your first expense or income.',
+    addExpense: 'Add expense',
+    addIncome: 'Add income',
+    analytics: 'Analytics',
+    assistant: 'Ask assistant',
+  },
+  analytics: {
+    title: 'Analytics',
+    selectMonth: 'Select month',
+    selectYear: 'Select year',
+    income: 'Income',
+    expenses: 'Expenses',
+    expenseTrend: 'Expense trend',
+    noTrend: 'Add transactions to see your spending trend.',
+  },
+  notifications: {
+    title: 'Notifications',
+    emptyTitle: 'You are all caught up',
+    emptyMessage: 'New account alerts and reminders will appear here.',
+    monthlyReview: 'Monthly review ready',
+    monthlyReviewText: 'See how your spending changed this month.',
+    reminder: 'Expense reminder',
+    reminderText: 'Remember to record today’s purchases.',
+  },
+  profile: {
+    title: 'Profile & settings',
+    logoutTitle: 'Log out?',
+    logoutMessage: 'Choose which sessions to sign out from.',
+  },
+} as const;

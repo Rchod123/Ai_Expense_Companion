@@ -24,7 +24,8 @@ import { RootStackParamList } from '../../types/types';
 import { COLORS } from '../../utils/colors';
 
 const IntroductionAnimationScreen: React.FC = () => {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const window = useWindowDimensions();
 
   const [currentPage, setCurrentPage] = useState(0);
@@ -75,6 +76,10 @@ const IntroductionAnimationScreen: React.FC = () => {
     toValue !== undefined && playAnimation(toValue);
   }, [playAnimation, navigation]);
 
+  const onLoginClick = () => {
+    navigation.navigate('Login');
+  };
+
   const onBackClick = useCallback(() => {
     let toValue;
     if (animValue.current >= 0.2 && animValue.current < 0.4) {
@@ -98,7 +103,7 @@ const IntroductionAnimationScreen: React.FC = () => {
     <View
       testID={mainContainer(Values.Screens.Splash)}
       accessibilityLabel={mainContainer(Values.Screens.Splash)}
-      style={{ flex: 1, backgroundColor: COLORS.backgroundColor }}
+      style={styles.screen}
     >
       <StatusBar barStyle={`${currentPage > 0 ? 'dark' : 'light'}-content`} />
       <SplashMeetView {...{ onNextClick, animationController }} />
@@ -122,12 +127,15 @@ const IntroductionAnimationScreen: React.FC = () => {
 
       <TopBackSkipView {...{ onBackClick, onSkipClick, animationController }} />
 
-      <CenterNextButton {...{ onNextClick, animationController }} />
+      <CenterNextButton
+        {...{ onNextClick, animationController, onLoginClick }}
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: COLORS.backgroundColor },
   scenesContainer: {
     justifyContent: 'center',
     ...StyleSheet.absoluteFill,

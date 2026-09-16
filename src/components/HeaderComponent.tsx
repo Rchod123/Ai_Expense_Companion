@@ -20,7 +20,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   row: {
-
     flexDirection: 'row',
     justifyContent: 'space-between',
 
@@ -51,11 +50,7 @@ const Icon = ({
   name: 'chevron-left' | 'ellipsis';
   size: number;
 }) => (
-  <FontAwesome6
-    name={name}
-    color={'white'}
-    size={heightPercentageToDP(size)}
-  />
+  <FontAwesome6 name={name} color={'white'} size={heightPercentageToDP(size)} />
 );
 
 type ScreenHeaderProps = {
@@ -75,15 +70,20 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({
 }) => {
   const navigation = useNavigation();
   const onBackClick = () => {
-    if(!!navigation.canGoBack){
-        navigation.goBack()
+    if (navigation.canGoBack()) {
+      navigation.goBack();
     }
-  }
+  };
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: COLORS.backgroundColor }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: COLORS.backgroundColor }]}
+    >
       <View style={styles.row}>
         {showBackButton ? (
-         <BackButton testID={GenralContainer('Header_Back')} onPress={onBackClick} />
+          <BackButton
+            testID={GenralContainer('Header_Back')}
+            onPress={onBackClick}
+          />
         ) : (
           <View style={styles.iconPlaceholder} />
         )}
@@ -107,7 +107,9 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({
           <View style={styles.iconPlaceholder} />
         )}
       </View>
-      {required && <View style={[styles.radius,{backgroundColor: COLORS.surface}]} />}
+      {required && (
+        <View style={[styles.radius, { backgroundColor: COLORS.surface }]} />
+      )}
     </SafeAreaView>
   );
 };
