@@ -5,14 +5,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import FloatingButton from '../components/FloatingButton';
 import { ProfileHeader } from '../components/ProfileHeader';
 import { TextComponent } from '../components/TextComp';
-import { ExpenseProps } from '../types/screenTypes';
+import { Expense } from '../types/expense.types';
 import { RootStackParamList } from '../types/types';
 import MyPressable from '../components/MyPressable';
 import { COLORS, RADIUS, SHADOWS, SPACING } from '../utils/colors';
-import { useExpenses } from '../zustand/store';
 import { STRINGS } from '../constants/strings';
 import { BalanceCard } from './dashboard/BalanceCard';
 import { SpendCard } from './dashboard/SpentCard';
+import { useExpenseStore } from '../store/expenseStore';
 
 const iconForCategory = (category: string) => {
   const normalized = category.toLowerCase();
@@ -36,16 +36,16 @@ const transactionDate = (value: string) =>
 
 export const DashboardScreen = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const expenses = useExpenses(state => state.expenses);
+  const expenses = useExpenseStore(state => state.expenses);
   const spent = expenses
     .filter(item => item.transactionType === 'spent')
-    .reduce((total, item) => total + Number(item.transactionAmount), 0);
+    .reduce((total, item) => total + item.amount, 0);
   const income = expenses
     .filter(item => item.transactionType === 'received')
-    .reduce((total, item) => total + Number(item.transactionAmount), 0);
+    .reduce((total, item) => total + item.amount, 0);
   const balance = income - spent;
 
-  const renderItem: ListRenderItem<ExpenseProps> = ({ item }) => {
+  const renderItem: ListRenderItem<Expense> = ({ item }) => {
     const isIncome = item.transactionType === 'received';
     return (
       <MyPressable
@@ -63,26 +63,30 @@ export const DashboardScreen = () => {
             ]}
           >
             <Icon
-              name={iconForCategory(item.Category)}
+              name={iconForCategory(item.category ?? '')}
               size={16}
               color={isIncome ? COLORS.success : COLORS.danger}
             />
           </View>
           <View style={styles.transactionDetails}>
             <TextComponent
-              value={item.SubCategory}
+              value={
+                item.note || item.subCategory || item.category || 'Transaction'
+              }
               variant="bold"
               size="Small"
             />
             <TextComponent
-              value={`${transactionDate(item.date)} · ${item.Category}`}
+              value={`${transactionDate(item.date)} · ${
+                item.category || 'Uncategorized'
+              }`}
               size="ExtraSmall"
               color={COLORS.textMuted}
             />
           </View>
         </View>
         <TextComponent
-          value={`${isIncome ? '+' : '-'}${currency(item.transactionAmount)}`}
+          value={`${isIncome ? '+' : '-'}${currency(item.amount)}`}
           variant="bold"
           size="Small"
           color={isIncome ? COLORS.success : COLORS.textPrimary}

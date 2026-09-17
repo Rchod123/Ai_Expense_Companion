@@ -18,10 +18,51 @@ import {
   WearablesScreen,
 } from './src/screen/SettingsScreens';
 import { NotificationCenterScreen } from './src/screen/NotificationCenterScreen';
+import { useEffect, useState } from 'react';
+import { useExpenseStore } from './src/store/expenseStore';
+import { initDatabase } from './src/database/migrations';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { ActivityIndicator, StyleSheet, Text } from 'react-native';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const App = () => {
+  const [ready, setReady] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadExpenses = useExpenseStore(state => state.loadExpenses);
+
+  useEffect(() => {
+    const bootstrap = async () => {
+      try {
+        await initDatabase();
+        await loadExpenses();
+        setReady(true);
+      } catch (bootstrapError: unknown) {
+        setError(
+          bootstrapError instanceof Error
+            ? bootstrapError.message
+            : 'Database setup failed.',
+        );
+      }
+    };
+
+    bootstrap();
+  }, [loadExpenses]);
+
+  if (!ready) {
+    return (
+      <SafeAreaView style={styles.loadingScreen}>
+        <ActivityIndicator size={'large'} />
+        <Text>
+          {error
+            ? `Unable to start: ${error}`
+            : 'Starting Expense Companion ...'}
+        </Text>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <NavigationContainer>
       <Stack.Navigator
@@ -55,3 +96,7 @@ const App = () => {
 };
 
 export default App;
+
+const styles = StyleSheet.create({
+  loadingScreen: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+});

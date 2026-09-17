@@ -2,13 +2,13 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useState } from 'react';
 import { Modal, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Rect } from 'react-native-svg';
+import Svg, { Line, Rect } from 'react-native-svg';
 import { BackButton } from '../components/BackButton';
 import MyPressable from '../components/MyPressable';
 import { TextComponent } from '../components/TextComp';
 import { RootStackParamList } from '../types/types';
 import { COLORS, RADIUS, SHADOWS, SPACING } from '../utils/colors';
-import { useExpenses } from '../zustand/store';
+import { useExpenseStore } from '../store/expenseStore';
 
 const months = [
   'All months',
@@ -30,8 +30,11 @@ export const AnalyticsScreen = () => {
   const [monthIndex, setMonthIndex] = useState(0);
   const [year, setYear] = useState(new Date().getFullYear());
   const [picker, setPicker] = useState<'month' | 'year' | null>(null);
-  const expenses = useExpenses(state => state.expenses).filter(item => {
-    const date = new Date(item.date);
+  const transactions = useExpenseStore(state => state.expenses);
+
+  const expenses = transactions.filter(item => {
+    const parsedDate = new Date(item.date);
+    const date = Number.isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
     return (
       date.getFullYear() === year &&
       (!monthIndex || date.getMonth() + 1 === monthIndex)
@@ -39,15 +42,16 @@ export const AnalyticsScreen = () => {
   });
   const income = expenses
     .filter(item => item.transactionType === 'received')
-    .reduce((sum, item) => sum + Number(item.transactionAmount), 0);
+    .reduce((sum, item) => sum + item.amount, 0);
   const spent = expenses
     .filter(item => item.transactionType === 'spent')
-    .reduce((sum, item) => sum + Number(item.transactionAmount), 0);
-  const bars = expenses
-    .filter(item => item.transactionType === 'spent')
-    .slice(0, 6)
-    .map(item => Number(item.transactionAmount));
-  const maximum = Math.max(...bars, 1);
+    .reduce((sum, item) => sum + item.amount, 0);
+  const bars = expenses.slice(0, 6).map(item => ({
+    id: item.id,
+    value: item.amount,
+    type: item.transactionType,
+  }));
+  const maximum = Math.max(...bars.map(item => item.value), 1);
   return (
     <SafeAreaView style={styles.screen}>
       <View style={styles.header}>
@@ -73,18 +77,26 @@ export const AnalyticsScreen = () => {
         <Metric label="Expenses" value={spent} color={COLORS.danger} />
       </View>
       <View style={styles.chartCard}>
-        <TextComponent value="Expense trend" variant="bold" />
+        <TextComponent value="Cash flow" variant="bold" />
         <Svg width="100%" height={180} viewBox="0 0 300 180">
+          <Line
+            x1="14"
+            y1="160"
+            x2="286"
+            y2="160"
+            stroke={COLORS.border}
+            strokeWidth="2"
+          />
           {bars.length ? (
-            bars.map((value, index) => (
+            bars.map((item, index) => (
               <Rect
-                key={`${value}-${index}`}
+                key={item.id}
                 x={index * 48 + 18}
-                y={160 - (value / maximum) * 130}
+                y={160 - (item.value / maximum) * 130}
                 width="28"
-                height={(value / maximum) * 130}
+                height={(item.value / maximum) * 130}
                 rx="8"
-                fill={COLORS.brand}
+                fill={item.type === 'received' ? COLORS.success : COLORS.danger}
               />
             ))
           ) : (
@@ -101,7 +113,7 @@ export const AnalyticsScreen = () => {
         <TextComponent
           value={
             bars.length
-              ? 'Each bar is one of your recent expenses.'
+              ? 'Green bars are income. Coral bars are expenses.'
               : 'Add transactions to see your spending trend.'
           }
           color={COLORS.textSecondary}

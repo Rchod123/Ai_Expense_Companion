@@ -7,25 +7,42 @@ import { TextComponent } from '../components/TextComp';
 import { STRINGS } from '../constants/strings';
 import { RootStackParamList } from '../types/types';
 import { COLORS, RADIUS, SHADOWS, SPACING } from '../utils/colors';
-import { useExpenses } from '../zustand/store';
+import { useExpenseStore } from '../store/expenseStore';
 
 export const NotificationCenterScreen = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const hasTransactions = useExpenses(state => state.expenses.length > 0);
-  const notices = hasTransactions
-    ? [
-        {
-          icon: 'chart-line',
-          title: STRINGS.notifications.monthlyReview,
-          text: STRINGS.notifications.monthlyReviewText,
-        },
-        {
-          icon: 'clock',
-          title: STRINGS.notifications.reminder,
-          text: STRINGS.notifications.reminderText,
-        },
-      ]
-    : [];
+  const expenses = useExpenseStore(state => state.expenses);
+  const reminders = expenses
+    .filter(expense => expense.isRecurring && expense.reminderDate)
+    .sort((first, second) =>
+      (first.reminderDate ?? '').localeCompare(second.reminderDate ?? ''),
+    );
+  const notices = [
+    ...reminders.map(expense => ({
+      id: expense.id,
+      icon: 'clock',
+      title: `Recurring reminder: ${
+        expense.note || expense.category || 'Transaction'
+      }`,
+      text: `Scheduled for ${new Date(
+        `${expense.reminderDate}T12:00:00`,
+      ).toLocaleDateString('en-IN', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      })}.`,
+    })),
+    ...(expenses.length
+      ? [
+          {
+            id: 'monthly-review',
+            icon: 'chart-line',
+            title: STRINGS.notifications.monthlyReview,
+            text: STRINGS.notifications.monthlyReviewText,
+          },
+        ]
+      : []),
+  ];
   return (
     <SafeAreaView style={styles.screen}>
       <View style={styles.header}>
@@ -40,7 +57,7 @@ export const NotificationCenterScreen = () => {
       </View>
       {notices.length ? (
         notices.map(notice => (
-          <View key={notice.title} style={styles.notice}>
+          <View key={notice.id} style={styles.notice}>
             <View style={styles.icon}>
               <Icon name={notice.icon as any} color={COLORS.brandStrong} />
             </View>

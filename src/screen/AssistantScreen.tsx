@@ -8,11 +8,11 @@ import MyPressable from '../components/MyPressable';
 import { TextComponent } from '../components/TextComp';
 import { RootStackParamList } from '../types/types';
 import { COLORS, RADIUS, SHADOWS, SPACING } from '../utils/colors';
-import { useExpenses } from '../zustand/store';
+import { useExpenseStore } from '../store/expenseStore';
 
 export const AssistantScreen = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const expenses = useExpenses(state => state.expenses);
+  const expenses = useExpenseStore(state => state.expenses);
   const [question, setQuestion] = useState('');
   const [isListening, setListening] = useState(false);
   const [reply, setReply] = useState(
@@ -21,7 +21,7 @@ export const AssistantScreen = () => {
   const ask = () => {
     const spent = expenses
       .filter(item => item.transactionType === 'spent')
-      .reduce((sum, item) => sum + Number(item.transactionAmount), 0);
+      .reduce((sum, item) => sum + item.amount, 0);
     if (question.toLowerCase().includes('add')) {
       navigation.navigate('AddExpense', {
         type: question.toLowerCase().includes('income') ? 'received' : 'spent',
