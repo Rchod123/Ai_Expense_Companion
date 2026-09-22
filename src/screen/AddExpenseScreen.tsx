@@ -4,7 +4,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -40,6 +40,12 @@ export const AddExpenseScreen = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route = useRoute<AddExpenseRoute>();
   const createExpense = useExpenseStore(state => state.createExpense);
+  const updateExpense = useExpenseStore(state => state.updateExpense);
+  const existing = useExpenseStore(state =>
+    route.params?.expenseId
+      ? state.expenses.find(item => item.id === route.params?.expenseId)
+      : undefined,
+  );
   const type = route.params?.type ?? 'spent';
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
@@ -50,10 +56,25 @@ export const AddExpenseScreen = () => {
   const [isRecurring, setIsRecurring] = useState(false);
   const [reminderDate, setReminderDate] = useState(today);
   const [isSaving, setIsSaving] = useState(false);
-  const title = type === 'received' ? 'Add income' : 'Add expense';
+  const isEditing = Boolean(existing);
+  const transactionType = existing?.transactionType ?? type;
+  useEffect(() => {
+    if (!existing) return;
+    setAmount(String(existing.amount));
+    setDescription(existing.note ?? '');
+    setCategory(existing.category ?? '');
+    setMerchant(existing.merchant ?? '');
+    setPaymentMethod(existing.paymentMethod ?? 'UPI');
+    setDate(existing.date);
+    setIsRecurring(Boolean(existing.isRecurring));
+    setReminderDate(existing.reminderDate ?? today());
+  }, [existing]);
+  const title = isEditing
+    ? transactionType === 'received' ? 'Edit income' : 'Edit expense'
+    : type === 'received' ? 'Add income' : 'Add expense';
   const actionLabel = useMemo(
-    () => `Save ${type === 'received' ? 'income' : 'expense'}`,
-    [type],
+    () => isEditing ? 'Save changes' : `Save ${transactionType === 'received' ? 'income' : 'expense'}`,
+    [isEditing, transactionType],
   );
 
   const onSubmit = async () => {
@@ -74,10 +95,10 @@ export const AddExpenseScreen = () => {
     }
     try {
       setIsSaving(true);
-      await createExpense({
+      const input = {
         amount: value,
         currency: 'INR',
-        transactionType: type,
+        transactionType,
         category: category.trim(),
         merchant: merchant.trim(),
         paymentMethod,
@@ -85,7 +106,9 @@ export const AddExpenseScreen = () => {
         reminderDate: isRecurring ? reminderDate : undefined,
         note: description.trim(),
         isRecurring,
-      });
+      } as const;
+      if (existing) await updateExpense(existing.id, input);
+      else await createExpense(input);
       navigation.goBack();
     } catch {
       Alert.alert('Could not save transaction', 'Please try again.');

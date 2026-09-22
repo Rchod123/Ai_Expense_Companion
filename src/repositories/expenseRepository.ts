@@ -155,6 +155,34 @@ export const ExpenseRepository = {
     return expense;
   },
 
+  async applyServerExpense(localId: string, serverExpense: Expense) {
+    const db = await getDatabase();
+    const existing = await this.getById(localId);
+    if (existing && localId !== serverExpense.id) {
+      await db.executeSql('DELETE FROM expenses WHERE id = ?', [localId]);
+    }
+    await db.executeSql(
+      `INSERT OR REPLACE INTO expenses (id, client_id, amount, currency, transaction_type, category_id, category, sub_category, merchant, payment_method, date, reminder_date, note, is_recurring, created_at, updated_at, sync_status, deleted_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'synced', NULL)`,
+      [serverExpense.id, serverExpense.clientId ?? existing?.clientId ?? serverExpense.id, serverExpense.amount, serverExpense.currency, serverExpense.transactionType, serverExpense.categoryId ?? null, serverExpense.category ?? null, serverExpense.subCategory ?? null, serverExpense.merchant ?? null, serverExpense.paymentMethod ?? null, serverExpense.date, serverExpense.reminderDate ?? null, serverExpense.note ?? null, serverExpense.isRecurring ? 1 : 0, serverExpense.createdAt ?? now(), serverExpense.updatedAt ?? now()],
+    );
+    await db.executeSql('DELETE FROM sync_queue WHERE entity_id = ? OR client_id = ?', [localId, serverExpense.clientId ?? localId]);
+    return serverExpense;
+  },
+
+  async replaceWithServerExpenses(expenses: Expense[]) {
+    const db = await getDatabase();
+    await db.transaction(async transaction => {
+      await transaction.executeSql("DELETE FROM expenses WHERE sync_status = 'synced'");
+      for (const expense of expenses) {
+        await transaction.executeSql(
+          `INSERT OR IGNORE INTO expenses (id, client_id, amount, currency, transaction_type, category_id, category, sub_category, merchant, payment_method, date, reminder_date, note, is_recurring, created_at, updated_at, sync_status, deleted_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'synced', NULL)`,
+          [expense.id, expense.clientId ?? expense.id, expense.amount, expense.currency, expense.transactionType, expense.categoryId ?? null, expense.category ?? null, expense.subCategory ?? null, expense.merchant ?? null, expense.paymentMethod ?? null, expense.date, expense.reminderDate ?? null, expense.note ?? null, expense.isRecurring ? 1 : 0, expense.createdAt ?? now(), expense.updatedAt ?? now()],
+        );
+      }
+    });
+    return this.getAll();
+  },
+
   async update(id: string, input: UpdateExpenseInput) {
     const db = await getDatabase();
     const existing = await this.getById(id);

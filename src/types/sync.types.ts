@@ -20,9 +20,10 @@
         lastSyncAt: string | null;
         changes: Array<{
             entity: SyncEntity;
-            operation: SyncOperation;
-            clientId: string;
-            data?: Record<string,unknown>;
+        operation: SyncOperation;
+        clientId: string;
+        entityId?: string;
+        data?: Record<string,unknown>;
         }>;
     };
 

@@ -3,7 +3,7 @@ export type RootStackParamList = {
   Login: undefined;
   Signup: undefined;
   Dashboard: undefined;
-  AddExpense: { type?: 'spent' | 'received' } | undefined;
+  AddExpense: { type?: 'spent' | 'received'; expenseId?: string } | undefined;
   ExpenseDetail: { expenseId: string };
   Analytics: undefined;
   Assistant: undefined;

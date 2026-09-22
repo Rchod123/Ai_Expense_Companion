@@ -7,6 +7,7 @@ import MyPressable from '../components/MyPressable';
 import { TextComponent } from '../components/TextComp';
 import { RootStackParamList } from '../types/types';
 import { COLORS, RADIUS, SHADOWS, SPACING } from '../utils/colors';
+import { useAuthStore } from '../store/authStore';
 
 const options: Array<{
   label: string;
@@ -52,20 +53,20 @@ const options: Array<{
 ];
 export const ProfileScreen = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const user = useAuthStore(state => state.user);
+  const logout = useAuthStore(state => state.logout);
   const confirmLogout = () =>
     Alert.alert('Log out?', 'Choose which sessions to sign out from.', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'This device',
         style: 'destructive',
-        onPress: () =>
-          navigation.reset({ index: 0, routes: [{ name: 'Login' }] }),
+        onPress: async () => { await logout(); navigation.reset({ index: 0, routes: [{ name: 'Login' }] }); },
       },
       {
         text: 'All devices',
         style: 'destructive',
-        onPress: () =>
-          navigation.reset({ index: 0, routes: [{ name: 'Login' }] }),
+        onPress: async () => { await logout(); navigation.reset({ index: 0, routes: [{ name: 'Login' }] }); },
       },
     ]);
   return (
@@ -85,12 +86,12 @@ export const ProfileScreen = () => {
           <Icon name="circle-user" size={62} color={COLORS.brandStrong} />
           <View>
             <TextComponent
-              value="Your companion"
+              value={user?.name || 'Your companion'}
               variant="bold"
               size="MMedium"
             />
             <TextComponent
-              value="Manage your financial workspace"
+              value={user?.email || 'Manage your financial workspace'}
               size="Small"
               color={COLORS.textSecondary}
             />

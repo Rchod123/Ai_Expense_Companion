@@ -1,7 +1,8 @@
 import { ButtonsIDs } from '../types/testIds';
 import { Values } from '../types/constants';
 import CustomInput from '../components/TextInputComponet';
-import { Image, ScrollView, StyleSheet } from 'react-native';
+import { Alert, Image, ScrollView, StyleSheet } from 'react-native';
+import { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { AppImages } from '../assets';
 import { heightPercentageToDP, widthPercentageToDP } from '../utils/responsive';
@@ -10,9 +11,23 @@ import { COLORS } from '../utils/colors';
 import { PrimaryButton } from '../components/PrimaryButtonComponent';
 import { LinkText } from '../components/LinkTextComponent';
 import { TextComponent } from '../components/TextComp';
+import { useAuthStore } from '../store/authStore';
 
 export const LoginScreen = () => {
   const navigation = useNavigation<any>();
+  const login = useAuthStore(state => state.login);
+  const loading = useAuthStore(state => state.loading);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const submit = async () => {
+    if (!email.trim() || !password) return Alert.alert('Enter your details', 'Email and password are required.');
+    try {
+      await login(email.trim(), password);
+      navigation.reset({ index: 0, routes: [{ name: 'Dashboard' }] });
+    } catch (error: any) {
+      Alert.alert('Could not sign in', error?.response?.data?.error?.message ?? 'Check the API server and try again.');
+    }
+  };
 
   return (
     <ScrollView
@@ -33,11 +48,16 @@ export const LoginScreen = () => {
           name="Email"
           testID="Login_Email_Input"
           keyboardType="email-address"
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
         />
         <CustomInput
           name="Password"
           testID="Login_Password_Input"
           secureTextEntry
+          value={password}
+          onChangeText={setPassword}
         />
 
         <LinkText
@@ -48,8 +68,8 @@ export const LoginScreen = () => {
 
         <PrimaryButton
           testID={ButtonsIDs(Values.Screens.LoginScreen)}
-          onPress={() => navigation.navigate('Dashboard')}
-          value="Login"
+          onPress={submit}
+          value={loading ? 'Logging in…' : 'Login'}
         />
         <TextComponent value="Don't have an account?" />
         <LinkText

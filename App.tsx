@@ -20,9 +20,11 @@ import {
 import { NotificationCenterScreen } from './src/screen/NotificationCenterScreen';
 import { useEffect, useState } from 'react';
 import { useExpenseStore } from './src/store/expenseStore';
+import { useAuthStore } from './src/store/authStore';
 import { initDatabase } from './src/database/migrations';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ActivityIndicator, StyleSheet, Text } from 'react-native';
+import { ExpensePredict } from './src/utils/commonFunctions';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -31,11 +33,25 @@ const App = () => {
   const [error, setError] = useState<string | null>(null);
 
   const loadExpenses = useExpenseStore(state => state.loadExpenses);
+  const restoreSession = useAuthStore(state => state.restoreSession);
+
+  const expenses = [
+  'Uber ride to office',
+  'Pizza for dinner',
+  'Electricity bill payment',
+  'Amazon shopping',
+  'Monthly house rent',
+  'Salary credited',
+  'Movie tickets',
+  'Grocery shopping',
+];
+  
 
   useEffect(() => {
     const bootstrap = async () => {
       try {
         await initDatabase();
+        await restoreSession();
         await loadExpenses();
         setReady(true);
       } catch (bootstrapError: unknown) {
@@ -48,7 +64,15 @@ const App = () => {
     };
 
     bootstrap();
-  }, [loadExpenses]);
+    testExpenseAI();
+  }, [loadExpenses, restoreSession]);
+
+  const testExpenseAI = async () => {
+    for (const expense of expenses){
+      const result = await ExpensePredict(expense)
+      console.log(expense,": result: ",result)
+    }
+  }
 
   if (!ready) {
     return (

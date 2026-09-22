@@ -5,13 +5,14 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import Icon from '@react-native-vector-icons/fontawesome-free-solid';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BackButton } from '../components/BackButton';
 import { TextComponent } from '../components/TextComp';
 import { RootStackParamList } from '../types/types';
 import { COLORS, RADIUS, SHADOWS, SPACING } from '../utils/colors';
 import { useExpenseStore } from '../store/expenseStore';
+import { PrimaryButton } from '../components/PrimaryButtonComponent';
 
 export const ExpenseDetailScreen = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
@@ -19,6 +20,7 @@ export const ExpenseDetailScreen = () => {
   const expense = useExpenseStore(state =>
     state.expenses.find(item => item.id === route.params.expenseId),
   );
+  const deleteExpense = useExpenseStore(state => state.deleteExpense);
   if (!expense)
     return (
       <SafeAreaView style={styles.screen}>
@@ -30,10 +32,21 @@ export const ExpenseDetailScreen = () => {
   const amount = `₹${expense.amount.toLocaleString('en-IN', {
     maximumFractionDigits: 2,
   })}`;
+  const confirmDelete = () => Alert.alert(
+    'Delete transaction?',
+    'This transaction will be removed from this device and the connected account.',
+    [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: async () => {
+        try { await deleteExpense(expense.id); navigation.goBack(); }
+        catch { Alert.alert('Could not delete transaction', 'Please try again.'); }
+      } },
+    ],
+  );
   return (
     <ScrollView>
       <SafeAreaView style={styles.screen}>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <View style={styles.header}>
           <BackButton onPress={() => navigation.goBack()} />
           <TextComponent
             value={
@@ -94,6 +107,17 @@ export const ExpenseDetailScreen = () => {
           />
           <Detail label="Reference" value={`#${expense.id.slice(-8)}`} />
         </View>
+        <PrimaryButton
+          testID="ExpenseDetail_Edit_Button"
+          value="Edit transaction"
+          onPress={() => navigation.navigate('AddExpense', { expenseId: expense.id, type: expense.transactionType })}
+        />
+        <PrimaryButton
+          testID="ExpenseDetail_Delete_Button"
+          value="Delete transaction"
+          onPress={confirmDelete}
+          style={styles.deleteButton}
+        />
       </SafeAreaView>
     </ScrollView>
   );
@@ -118,6 +142,7 @@ const styles = StyleSheet.create({
     gap: SPACING.md,
   },
   center: { textAlign: 'center' },
+  header: { flexDirection: 'row', alignItems: 'center' },
   icon: {
     alignSelf: 'center',
     width: 72,
@@ -143,4 +168,5 @@ const styles = StyleSheet.create({
     gap: SPACING.xs,
   },
   detailValue: { textAlign: 'right' },
+  deleteButton: { backgroundColor: COLORS.danger, marginBottom: SPACING.xl },
 });

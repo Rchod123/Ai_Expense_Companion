@@ -8,6 +8,9 @@ import {
 } from '../types/expense.types';
 
 import {ExpenseRepository} from '../repositories/expenseRepository';
+import { expenseApi } from '../services/expenseApi';
+import { useAuthStore } from './authStore';
+import { SyncRepository } from '../repositories/syncRepository';
 
 type ExpenseState = {
   expenses: Expense[];
@@ -45,8 +48,16 @@ export const useExpenseStore = create<ExpenseState>(
       });
 
       try {
-        const expenses =
-          await ExpenseRepository.getAll();
+        let expenses = await ExpenseRepository.getAll();
+        if (useAuthStore.getState().user) {
+          try {
+            await SyncRepository.sync();
+            const remoteExpenses = await expenseApi.getExpenses();
+            expenses = await ExpenseRepository.replaceWithServerExpenses(remoteExpenses);
+          } catch {
+            // Preserve the local offline-first view when the server is unreachable.
+          }
+        }
 
         set({
           expenses,
@@ -62,8 +73,15 @@ export const useExpenseStore = create<ExpenseState>(
 
     createExpense: async input => {
       try {
-        const expense =
-          await ExpenseRepository.create(input);
+        let expense = await ExpenseRepository.create(input);
+        if (useAuthStore.getState().user) {
+          try {
+            const remote = await expenseApi.createExpense(input, expense.clientId ?? expense.id);
+            expense = await ExpenseRepository.applyServerExpense(expense.id, remote);
+          } catch {
+            // The local record remains queued for a later sync.
+          }
+        }
 
         set(state => ({
           expenses: [
@@ -82,8 +100,15 @@ export const useExpenseStore = create<ExpenseState>(
 
     updateExpense: async (id, input) => {
       try {
-        const updated =
-          await ExpenseRepository.update(id, input);
+        let updated: Expense = await ExpenseRepository.update(id, input);
+        if (useAuthStore.getState().user) {
+          try {
+            const remote = await expenseApi.updateExpense(id, input);
+            updated = await ExpenseRepository.applyServerExpense(id, remote);
+          } catch {
+            // The changed local record remains queued for a later sync.
+          }
+        }
 
         set(state => ({
           expenses: state.expenses.map(item =>
@@ -102,6 +127,13 @@ export const useExpenseStore = create<ExpenseState>(
     deleteExpense: async id => {
       try {
         await ExpenseRepository.delete(id);
+        if (useAuthStore.getState().user) {
+          try {
+            await expenseApi.deleteExpense(id);
+          } catch {
+            // Soft deletion is retained locally and will sync later.
+          }
+        }
 
         set(state => ({
           expenses: state.expenses.filter(

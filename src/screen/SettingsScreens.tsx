@@ -14,6 +14,7 @@ import MyPressable from '../components/MyPressable';
 import { PrimaryButton } from '../components/PrimaryButtonComponent';
 import { TextComponent } from '../components/TextComp';
 import { COLORS, RADIUS, SHADOWS, SPACING } from '../utils/colors';
+import { useAuthStore } from '../store/authStore';
 
 const Layout = ({
   title,
@@ -75,8 +76,10 @@ const Input = ({
 );
 
 export const ProfileDetailsScreen = () => {
-  const [nickname, setNickname] = useState('Your companion');
-  const [email, setEmail] = useState('you@example.com');
+  const user = useAuthStore(state => state.user);
+  const updateProfile = useAuthStore(state => state.updateProfile);
+  const [nickname, setNickname] = useState(user?.name || '');
+  const [email, setEmail] = useState(user?.email || '');
   const [mobile, setMobile] = useState('');
   return (
     <Layout title="Manage profile">
@@ -109,9 +112,10 @@ export const ProfileDetailsScreen = () => {
       <PrimaryButton
         testID="Profile_Save_Button"
         value="Save changes"
-        onPress={() =>
-          Alert.alert('Saved', 'Your profile details have been updated.')
-        }
+        onPress={async () => {
+          try { await updateProfile({ name: nickname }); Alert.alert('Saved', 'Your profile details have been updated.'); }
+          catch { Alert.alert('Could not save profile', 'Check your connection and try again.'); }
+        }}
       />
     </Layout>
   );
