@@ -1,7 +1,7 @@
 import axios from 'axios';
 import Device from '../Config';
 
-export const API_BASE_URL = Device.isAndroid ? 'http://10.0.2.2:5000/api/v1' : 'http://localhost:5000/api/v1';
+export const API_BASE_URL = Device.isAndroid ? 'http://10.0.2.2:5001/api/v1' : 'http://localhost:5001/api/v1';
 
 export const apiClient = axios.create({
     baseURL: API_BASE_URL,

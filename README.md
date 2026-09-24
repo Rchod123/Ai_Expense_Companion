@@ -1,5 +1,28 @@
 This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
 
+# AI Expense Companion API
+
+## Run the API and database
+
+The app keeps an offline SQLite cache and syncs authenticated data to PostgreSQL.
+
+```sh
+cp .env.example .env
+npm run db:up
+npm run db:migrate
+npm run api
+```
+
+Open [pgAdmin](http://localhost:5050) to inspect the uploaded SQL data. Sign in
+with `admin@example.com` / `admin`, add a server with host `postgres`, port
+`5432`, username `postgres`, password `postgres`, then browse
+`expense_app → Schemas → public → Tables → expenses` and select **View/Edit Data**.
+The API health check is [http://localhost:5000/api/v1/health](http://localhost:5000/api/v1/health).
+
+Android Emulator connects to `10.0.2.2:5000`; iOS Simulator connects to
+`localhost:5000`. On a physical device, set the computer's LAN IP in
+`src/services/apiClient.ts`.
+
 # Getting Started
 
 > **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.

@@ -1,0 +1,21 @@
+
+export const categoryList = [
+  "Bills & Utilities",
+  "Charity",
+  "Education",
+  "Entertainment",
+  "Family",
+  "Fitness",
+  "Food & Dining",
+  "Groceries",
+  "Healthcare",
+  "Housing",
+  "Insurance",
+  "Investments",
+  "Loans & Debt",
+  "Other",
+  "Personal Care",
+  "Shopping",
+  "Transportation",
+  "Travel",
+]

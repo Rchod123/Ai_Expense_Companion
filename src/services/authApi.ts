@@ -13,6 +13,10 @@ export const authApi = {
   async logout(refreshToken: string) {
     await apiClient.post('/auth/logout', { refreshToken });
   },
+  async refresh(refreshToken: string): Promise<{accessToken: string; expiresIn: number}> {
+    const response = await apiClient.post('/auth/refresh', {refreshToken});
+    return response.data.data;
+  },
   async me() {
     const response = await apiClient.get('/auth/me');
     return response.data.data;

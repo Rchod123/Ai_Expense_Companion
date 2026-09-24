@@ -74,5 +74,19 @@ export const initDatabase = async () => {
       value TEXT
     );
   `);
+  await db.executeSql(`
+    CREATE TABLE IF NOT EXISTS ai_feedback (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      description TEXT NOT NULL,
+      transaction_type TEXT NOT NULL,
+      predicted_category TEXT NOT NULL,
+      predicted_class_index INTEGER,
+      confidence REAL,
+      final_category TEXT NOT NULL,
+      final_class_index INTEGER,
+      was_correct INTEGER NOT NULL,
+      created_at TEXT NOT NULL
+    );
+  `);
   console.log('Database initialized');
 };

@@ -22,11 +22,17 @@ import { mainContainer, ViewContainer } from '../../types/testIds';
 import { Values } from '../../types/constants';
 import { RootStackParamList } from '../../types/types';
 import { COLORS } from '../../utils/colors';
+import { useAuthStore } from '../../store/authStore';
 
 const IntroductionAnimationScreen: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const window = useWindowDimensions();
+  const user = useAuthStore(state => state.user);
+
+  useEffect(() => {
+    if (user) navigation.reset({index: 0, routes: [{name: 'Dashboard'}]});
+  }, [navigation, user]);
 
   const [currentPage, setCurrentPage] = useState(0);
 

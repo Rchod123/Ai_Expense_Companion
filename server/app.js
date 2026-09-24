@@ -256,6 +256,19 @@ app.get(`${prefix}/expenses`, auth, async (req, res, next) => {
     next(error);
   }
 });
+app.post(`${prefix}/ai-feedback`, auth, async (req, res, next) => {
+  try {
+    const feedback = req.body || {};
+    const required = ['description', 'transactionType', 'predictedCategory', 'finalCategory'];
+    if (required.some(key => !String(feedback[key] || '').trim()) || ![0, 1].includes(Number(feedback.wasCorrect)))
+      return fail(res, 400, 'VALIDATION_ERROR', 'AI feedback fields are incomplete.');
+    const result = await pool.query(
+      'INSERT INTO ai_feedback (user_id, description, transaction_type, predicted_category, predicted_class_index, confidence, final_category, final_class_index, was_correct, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id',
+      [req.userId, feedback.description, feedback.transactionType, feedback.predictedCategory, feedback.predictedClassIndex ?? null, feedback.confidence ?? null, feedback.finalCategory, feedback.finalClassIndex ?? null, Number(feedback.wasCorrect), feedback.createdAt || new Date().toISOString()],
+    );
+    ok(res, {id: result.rows[0].id}, 'AI feedback saved');
+  } catch (error) { next(error); }
+});
 app.get(`${prefix}/expenses/:id`, auth, async (req, res, next) => {
   try {
     const result = await pool.query(

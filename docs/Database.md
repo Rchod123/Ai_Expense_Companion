@@ -73,6 +73,22 @@ The database should follow these principles:
 11. Foreign keys should be enforced.
 12. Appropriate indexes should be created for common financial queries.
 
+## Start the cloud database and inspect tables
+
+The mobile app initializes its SQLite tables automatically. To create and view
+the PostgreSQL `users`, `expenses`, and `ai_feedback` tables, run:
+
+```sh
+npm run db:up
+npm run db:migrate
+npm run api
+```
+
+In pgAdmin, connect to `localhost:5432` with database `expense_app`, user
+`postgres`, and password `postgres`. Tables appear under **Databases →
+expense_app → Schemas → public → Tables**. The migration is safe to rerun and
+creates the tables without removing existing rows.
+
 ---
 
 # 3. Entity Relationship Overview

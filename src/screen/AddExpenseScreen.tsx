@@ -7,11 +7,14 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
+  FlatList,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   ScrollView,
   StyleSheet,
   Switch,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -23,6 +26,13 @@ import CustomInput from '../components/TextInputComponet';
 import { RootStackParamList } from '../types/types';
 import { COLORS, RADIUS, SHADOWS, SPACING } from '../utils/colors';
 import { useExpenseStore } from '../store/expenseStore';
+import { Dropdown } from '../components/DropDownComp';
+import { categoryList } from '../utils/commonConst';
+import { heightPercentageToDP } from '../utils/responsive';
+import { ExpensePredict } from '../utils/commonFunctions';
+import { AIFeedbackRepository } from '../repositories/aiFeedbackRepository';
+import { aiFeedbackApi } from '../services/aiFeedbackApi';
+import { useAuthStore } from '../store/authStore';
 
 type AddExpenseRoute = RouteProp<RootStackParamList, 'AddExpense'>;
 
@@ -57,6 +67,9 @@ export const AddExpenseScreen = () => {
   const [reminderDate, setReminderDate] = useState(today);
   const [isSaving, setIsSaving] = useState(false);
   const isEditing = Boolean(existing);
+  const [visible, setVisible] = useState(false);
+  const [conf,setConfi] = useState(0);
+  const [prediction, setPrediction] = useState<{category: string; confidence: number; classIndex: number} | null>(null);
   const transactionType = existing?.transactionType ?? type;
   useEffect(() => {
     if (!existing) return;
@@ -109,6 +122,23 @@ export const AddExpenseScreen = () => {
       } as const;
       if (existing) await updateExpense(existing.id, input);
       else await createExpense(input);
+      if (!existing && prediction) {
+        const predictedCategory = prediction.category.replace(/^Ai\s*-\s*/i, '').trim();
+        const feedback = {
+          description: description.trim(), transactionType,
+          predictedCategory, predictedClassIndex: prediction.classIndex,
+          confidence: prediction.confidence, finalCategory: category.trim(),
+          finalClassIndex: null,
+          wasCorrect: predictedCategory.toLowerCase() === category.trim().replace(/^Ai\s*-\s*/i, '').toLowerCase() ? 1 : 0,
+          createdAt: new Date().toISOString(),
+        };
+        try {
+          await AIFeedbackRepository.create(feedback);
+          if (useAuthStore.getState().user) {
+            try { await aiFeedbackApi.create(feedback); } catch { /* Local feedback remains available offline. */ }
+          }
+        } catch { /* A feedback storage issue must not undo a saved transaction. */ }
+      }
       navigation.goBack();
     } catch {
       Alert.alert('Could not save transaction', 'Please try again.');
@@ -116,6 +146,29 @@ export const AddExpenseScreen = () => {
       setIsSaving(false);
     }
   };
+
+  const Aicheck = async () => {
+    try{
+      const result = await ExpensePredict(description);
+      setCategory(result.category);
+      setPrediction(result);
+      setConfi(result.confidence);
+    }catch{
+
+    }
+  }
+
+  const catIconPress = () => {
+    if (conf > 50){
+      Alert.alert("Did we predict it wrong?","Help us to improve",[
+        {text: 'Yes', style: 'default', onPress: () => setVisible(true)},
+        {text: 'No', style: 'destructive'}
+      ])
+    }else{
+      setVisible(true)
+    }
+    
+  }
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
@@ -163,6 +216,7 @@ export const AddExpenseScreen = () => {
               value={description}
               onChangeText={setDescription}
               name="Description"
+              onEndEditing={Aicheck}
               testID="AddExpense_Description_Input"
               placeholder="e.g. Groceries"
             />
@@ -170,9 +224,13 @@ export const AddExpenseScreen = () => {
               value={category}
               onChangeText={setCategory}
               name="Category"
+              rightType='text'
+              rightValue={'▼'}
+              onRightPress={catIconPress}
               testID="AddExpense_Category_Input"
               placeholder="e.g. Food & dining"
             />
+            {/* <Dropdown label='Category' options={categoryList} selected={category} onSelect={setCategory} /> */}
             <CustomInput
               value={merchant}
               onChangeText={setMerchant}
@@ -255,6 +313,31 @@ export const AddExpenseScreen = () => {
           />
         </ScrollView>
       </KeyboardAvoidingView>
+      <Modal visible={visible} transparent animationType="fade" onRequestClose={() => setVisible(false)}>
+        <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => setVisible(false)}>
+          <View style={styles.modalContent}>
+            <FlatList
+              data={categoryList}
+              keyExtractor={(item) => item}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[styles.option, item === category && styles.selectedOption]}
+                  onPress={() => {
+                    setCategory(item);
+                    setConfi(0);
+                    setVisible(false);
+                  }}>
+                    <TextComponent
+                    style={[styles.optionText, item === category && styles.selectedText]}
+                    value={item}
+                    />
+                  
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -306,4 +389,15 @@ const styles = StyleSheet.create({
   },
   recurringCopy: { flex: 1, gap: SPACING.xs },
   saveButton: { marginTop: 'auto' },
+    modalContent: { backgroundColor: '#fff', borderRadius: 8, maxHeight: heightPercentageToDP(70), elevation: 5 },
+  option: { padding: 16, borderBottomWidth: 1, borderBottomColor: '#eee' },
+  selectedOption: { backgroundColor: '#f0f8ff' },
+  optionText: { fontSize: 16, color: '#333' },
+  selectedText: { fontWeight: 'bold', color: '#007AFF' },
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    padding: 24,
+  },
 });
